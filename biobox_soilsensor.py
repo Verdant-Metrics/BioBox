@@ -5,7 +5,7 @@ import plotly
 import matplotlib.pyplot as plt
 import datetime 
 import numpy as np
-import time
+#import time
 #from dash import Dash, dcc, Input, Output, callback, html
 import requests
 import json
@@ -15,7 +15,7 @@ import json
 import os
 
 from google.cloud.sql.connector import Connector, IPTypes
-import pymysql
+#import pymysql
 
 import sqlalchemy
 
