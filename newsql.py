@@ -1,26 +1,18 @@
 
 import minimalmodbus
 import pandas as pd 
-import plotly
-import matplotlib.pyplot as plt
+#import plotly
+#import matplotlib.pyplot as plt
 import datetime 
-import numpy as np
+#import numpy as np
 #import time
 #from dash import Dash, dcc, Input, Output, callback, html
 import requests
 import json
-
-
-
 import os
-
-from google.cloud.sql.connector import Connector, IPTypes
+#from google.cloud.sql.connector import Connector, IPTypes
 import pymysql
-
-import sqlalchemy
-
-#connecting to cloud sql
-
+import time
 
 
 
@@ -155,47 +147,45 @@ def sqlsoilsensor():
 	h=datetime.datetime.now()
 	print('time',h)
 	insert=(a,b,c,d,e,f,g,h)
-	cursor.execute(insert_stmt,insert)
+	cursor.execute(sql,insert)
 	connection.commit()
 		
 
-	cursor.execute("SELECT * FROM soil_sensortest2")
+	cursor.execute("SELECT * FROM soil_sensor")
 	myresult = cursor.fetchall()
-	print('printing soil_sensortest2 now')
+	print('printing soil_sensortest now')
 	for x in myresult:
   			print(x)
 
+user = 'admin'
+password = 'biobox2024'
+host = 'biobox.cl8ku2sqypva.us-east-2.rds.amazonaws.com'
+port = 3306
+database = 'bioboxtest'
 
+
+connection = pymysql.connect(
+    host=host,
+    port=port,
+    user=user,
+    password=password,
+    database=database
+)
+
+cursor = connection.cursor()
 
 
 # function to return the database connection-----------------------------------------------------
-def getconn() -> pymysql.connections.Connection:
-    conn: pymysql.connections.Connection = connector.connect(
-        "fluid-shoreline-441820-j4:northamerica-northeast1:biobox",
-        "pymysql",
-        user="root",
-        password="biobox2024",
-        db="biobox"
-    )
-    return conn
 
-# create connection pool
-pool = sqlalchemy.create_engine(
-    "mysql+pymysql://",
-    creator=getconn,
-)
-# insert statement
-insert_stmt = sqlalchemy.text(
-    "INSERT INTO my_table (id, title) VALUES (:id, :title)",
-)
+
+
+
+
 #-------------------------------------------------------------------------
 
 #main loop with keyboard interupt----------------------------------------
 
-#initialize-------------------
-connector = Connector()
-
-
+#getconn()
 try:
     while True:
         sqlsoilsensor()
@@ -216,89 +206,4 @@ print("ending")
 #how
 
 
-#to do
-	#deal with ram storage issue: maybe every 500 updates delete first 250 lines or something 
-	#maybe average all the data first?
 
-
-#before meeting, make update quicker? make nice demo, change units
-
-
-#add to permanent data with timestamp
-
-
-#want to save all values to one array with timestamp
-#now = datetime.datetime.now()
-#current_data=pd.array(now,N,P,K,PH,moisture)
-#data=pd.append(data,current_data)
-
-
-
-#to get data from cloud to here? 
-#api to pull data in same array as above would be ideal
-
-
-#create dashboard using dash - dash enterprise would be used in the future
-#dash suggests running in an virtual environment 
-
-# app.py
-
-
-#old method of displaying info-------------------------------------------
-
-def pub2():
-	global Master_Air
-	global Master
-	app2 = Dash(__name__)
-	app2.layout = html.Div(
-   		 html.Div([
-       		 html.H4('Soil sensor reading'),
-       		 #html.Div(id='live-update-text'),
-       		 dcc.Graph(id='live-update-graph'),
-       		 dcc.Interval(
-           		 id='interval-component',
-           		 interval=15*1000, # in milliseconds
-           		 n_intervals=0
-       		 )
-		   		 ])
-		)
-	takevalues(2)
-	@callback(Output('live-update-graph', 'figure'),
-        		     Input('interval-component', 'n_intervals'))
-	def update_graph_live(n):
-		takevalues(2)
-		requestairgradient()
-			#if dcc.interval
-    		 # Collect some data
-# Create the graph with subplots
-		fig = plotly.tools.make_subplots(rows=3, cols=1, vertical_spacing=0.2)
-		fig['layout']['margin'] = {
-		    'l': 30, 'r': 10, 'b': 30, 't': 10
-		}
-		fig['layout']['legend'] = {'x': 0, 'y': 1, 'xanchor': 'left'}
-
-		fig.append_trace({
-		   'x': Master['time'],
-		   'y': Master['humidity'],
-	 	   'name': 'humidity reading',
-	 	   'mode': 'lines+markers',
-	  	  'type': 'scatter'
-		}, 1, 1)
-		fig.append_trace({
-  		 'x': Master['time'],
-   		 'y': Master['temp'],
-   		 'text': Master['time'],
-   		 'name': 'Temperature Reading',
-   		 'mode': 'lines+markers',
-   		 'type': 'scatter'
-		}, 2, 1)
-		fig.append_trace({
-  		 'x': Master_Air['timestamp'],
-   		 'y': Master_Air['rco2'],
-   		 'text': Master['time'],
-   		 'name': 'C02 reading',
-   		 'mode': 'lines+markers',
-   		 'type': 'scatter'
-		}, 3, 1)
-
-#--------------------------------------------------------------
