@@ -21,7 +21,7 @@ import time
 
 
 # initilize soil sensor-----------------------------------------------------
-PORT='COM3'
+PORT='/dev/tty/USB0'
 
 #register numbers based on rs458 protocol
 N_reg= 30
@@ -52,6 +52,93 @@ instrument.clear_buffers_before_each_transaction = True
 
 
 
+
+
+#["N","P","K","PH","humidity","temp","cond","time"]
+#Reading soil sensor and pushing to sql server-------------------------------
+def sqlsoilsensor():
+
+
+	cursor.execute("CREATE TABLE IF NOT EXISTS soil_sensor (id INT(11) NOT NULL AUTO_INCREMENT, n FLOAT NOT NULL, p FLOAT NOT NULL, k FLOAT NOT NULL, ph FLOAT NOT NULL, humidity FLOAT NOT NULL, temp FLOAT NOT NULL, cond FLOAT NOT NULL, time TIMESTAMP NOT NULL, PRIMARY KEY (id))")
+
+	#cursor.execute("SELECT * FROM soil_sensortest4")
+	#myresult = cursor.fetchall()
+	#print('printing soil_sensortest2 now')
+
+
+
+
+	for x in myresult:
+  			print(x)
+
+		
+	sql="INSERT INTO soil_sensor (n,p,k,ph,humidity,temp,cond,time) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
+	a = instrument.read_register(N_reg)
+	b=instrument.read_register(P_reg)
+	c=instrument.read_register(K_reg)
+	d=instrument.read_register(PH_reg)
+	e=instrument.read_register(humidity_reg)
+	f=instrument.read_register(temp_reg)
+	g=instrument.read_register(cond_reg)
+	h=datetime.datetime.now()
+	print('time',h)
+	insert=(a,b,c,d,e,f,g,h)
+	cursor.execute(sql,insert)
+	connection.commit()
+		
+
+	#cursor.execute("SELECT * FROM soil_sensor")
+	#myresult = cursor.fetchall()
+	#print('printing soil_sensortest now')
+	#for x in myresult:
+  	#		print(x)
+
+
+
+#establish connection to mysql AWS databased--------------------------------------------------------
+user = 'admin'
+password = 'biobox2024'
+host = 'biobox.cl8ku2sqypva.us-east-2.rds.amazonaws.com'
+port = 3306
+database = 'bioboxtest'
+
+
+connection = pymysql.connect(
+    host=host,
+    port=port,
+    user=user,
+    password=password,
+    database=database
+)
+
+cursor = connection.cursor()
+#-------------------------------------------------------------------------------------------------------
+
+
+
+
+
+#-------------------------------------------------------------------------
+
+#main loop with keyboard interupt----------------------------------------
+
+print("starting")
+
+try:
+    while True:
+        sqlsoilsensor()
+        time.sleep(30)
+except KeyboardInterrupt:
+    print('interrupted!')
+
+
+print("ending")
+#---------------------------------------------------------------------------
+
+
+
+
+#Previous Method of collecting soil sensor data. ---------------------------------------------------
 
 #master data frames
 masterlist=[]
@@ -116,94 +203,3 @@ def requestairgradient():
 		return fig
 		if __name__ == "__main__":
 	   		 app2.run_server(debug=True)
-
-
-["N","P","K","PH","humidity","temp","cond","time"]
-#Pushing to sql server-------------------------------
-def sqlsoilsensor():
-
-
-	cursor.execute("CREATE TABLE IF NOT EXISTS soil_sensortest2 (id INT(11) NOT NULL AUTO_INCREMENT, n FLOAT NOT NULL, p FLOAT NOT NULL, k FLOAT NOT NULL, ph FLOAT NOT NULL, humidity FLOAT NOT NULL, temp FLOAT NOT NULL, cond FLOAT NOT NULL, time TIMESTAMP NOT NULL, PRIMARY KEY (id))")
-
-	cursor.execute("SELECT * FROM soil_sensortest4")
-	myresult = cursor.fetchall()
-	print('printing soil_sensortest2 now')
-
-
-
-
-	for x in myresult:
-  			print(x)
-
-		
-	sql="INSERT INTO soil_sensor (n,p,k,ph,humidity,temp,cond,time) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
-	a = instrument.read_register(N_reg)
-	b=instrument.read_register(P_reg)
-	c=instrument.read_register(K_reg)
-	d=instrument.read_register(PH_reg)
-	e=instrument.read_register(humidity_reg)
-	f=instrument.read_register(temp_reg)
-	g=instrument.read_register(cond_reg)
-	h=datetime.datetime.now()
-	print('time',h)
-	insert=(a,b,c,d,e,f,g,h)
-	cursor.execute(sql,insert)
-	connection.commit()
-		
-
-	cursor.execute("SELECT * FROM soil_sensor")
-	myresult = cursor.fetchall()
-	print('printing soil_sensortest now')
-	for x in myresult:
-  			print(x)
-
-user = 'admin'
-password = 'biobox2024'
-host = 'biobox.cl8ku2sqypva.us-east-2.rds.amazonaws.com'
-port = 3306
-database = 'bioboxtest'
-
-
-connection = pymysql.connect(
-    host=host,
-    port=port,
-    user=user,
-    password=password,
-    database=database
-)
-
-cursor = connection.cursor()
-
-
-# function to return the database connection-----------------------------------------------------
-
-
-
-
-
-#-------------------------------------------------------------------------
-
-#main loop with keyboard interupt----------------------------------------
-
-#getconn()
-try:
-    while True:
-        sqlsoilsensor()
-        time.sleep(10)
-except KeyboardInterrupt:
-    print('interrupted!')
-
-print("starting")
-#takevalues(a)
-#pubdata()
-#pub2()
-#soilsensor()
-
-#requestairgradient()
-print("ending")
-#---------------------------------------------------------------------------
-
-#how
-
-
-
